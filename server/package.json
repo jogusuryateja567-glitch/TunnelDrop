@@ -1,0 +1,23 @@
+{
+    "name": "tunneldrop-server",
+    "version": "1.0.0",
+    "description": "Signaling server for TunnelDrop P2P file transfer",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "start": "node index.js",
+        "dev": "node --watch index.js"
+    },
+    "keywords": [
+        "webrtc",
+        "signaling",
+        "p2p"
+    ],
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "socket.io": "^4.7.5",
+        "express": "^4.19.2",
+        "cors": "^2.8.5"
+    }
+}

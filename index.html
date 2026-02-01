@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/tunnel-icon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="Send files at light speed - P2P file transfer with zero upload wait time and no limits" />
+  <meta property="og:title" content="TunnelDrop - Instant P2P File Transfer" />
+  <meta property="og:description"
+    content="Send files at light speed - P2P file transfer with zero upload wait time and no limits" />
+  <meta property="og:type" content="website" />
+  <title>TunnelDrop - Send files at light speed</title>
+  <script>
+    window.global = window;
+    window.process = { env: {}, browser: true };
+    window.Buffer = window.Buffer || { isBuffer: () => false };
+  </script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
+</html>

@@ -1,0 +1,617 @@
+P2P Instant File Transfer Platform
+
+1. Executive Summary
+Product Name: TunnelDrop (working title)
+Vision: Build the world's fastest file transfer service by eliminating server-side storage entirely and creating direct peer-to-peer connections between devices.
+Core Value Proposition:
+
+Zero upload wait time—downloads begin instantly
+No file size limits
+Complete privacy (no server storage)
+Works across all devices and platforms
+Local network discovery for same-location transfers
+
+Target Launch: MVP in 8-12 weeks
+
+2. Problem Statement
+Current Pain Points
+
+Double Latency: Traditional services (WeTransfer, Google Drive) require full upload before download can begin
+Artificial Limits: File size caps (2GB-100GB) based on business models
+Privacy Concerns: Files stored on third-party servers, subject to scanning/monitoring
+Cross-Platform Friction: AirDrop only works Apple-to-Apple; alternatives are clunky
+Account Barriers: Most services require sign-up, reducing spontaneous sharing
+
+User Scenarios
+
+Hostel/College: Students sharing large files (movies, games, project files) within same building
+Office: Colleagues transferring large datasets without email/Slack limits
+Events/Conferences: Quick file sharing between attendees
+Cross-device: Personal transfers between own devices without cloud middleman
+
+
+3. Solution Overview
+Core Technology
+WebRTC Data Channels for direct browser-to-browser communication with:
+
+STUN/TURN servers for NAT traversal (minimal infrastructure)
+Signaling server for connection handshake only
+No file data touches our servers
+
+Key Differentiators
+
+Instant Start: Receiver begins downloading while sender is still "uploading"
+True Unlimited: No file size restrictions (limited only by device storage)
+Privacy-First: Zero-knowledge architecture
+Universal Compatibility: Works on any device with a modern browser
+Local Discovery: Automatic peer detection on same network
+
+
+4. Feature Requirements
+4.1 MVP Features (Phase 1)
+A. Core Transfer Flow
+Priority: P0 (Must Have)
+User Story: As a sender, I want to share a file with minimal friction.
+Requirements:
+
+User lands on homepage, no login required
+Click/tap "Send File" button
+Select file(s) via file picker or drag-and-drop
+System generates 4-digit numeric code (0000-9999)
+Display QR code encoding the connection URL
+Show waiting state: "Waiting for receiver..."
+Once connected, show transfer progress bar
+Transfer begins immediately (streaming)
+Completion notification with option to send another file
+
+Technical Specs:
+
+Support files up to 100GB (initial soft cap for testing)
+Chunk size: 16KB-64KB (optimized for WebRTC)
+Transfer speed display (MB/s)
+Automatic reconnection on connection drop
+Connection timeout: 5 minutes if no receiver joins
+
+
+B. Receiver Flow
+Priority: P0
+User Story: As a receiver, I want to access files with a simple code.
+Requirements:
+
+User lands on homepage
+Click/tap "Receive File" button
+Enter 4-digit code OR scan QR code
+Show sender's device name/browser info (e.g., "Chrome on Windows")
+Display file name, size, and estimated transfer time
+"Accept" or "Decline" button
+If accepted, auto-download or show "Save As" dialog (browser-dependent)
+Real-time progress indicator
+Completion notification
+
+Technical Specs:
+
+WebRTC connection established within 2-3 seconds
+Fallback to TURN relay if direct P2P fails
+Resume support for interrupted transfers (Phase 2 consideration)
+Multiple file support (send as batch or zip)
+
+
+C. Signaling Infrastructure
+Priority: P0
+Requirements:
+
+Lightweight WebSocket signaling server
+Room-based architecture (code = room ID)
+ICE candidate exchange
+Connection state management
+Automatic room cleanup after transfer or timeout
+
+Technical Specs:
+
+Signaling server handles only metadata (no file data)
+Max 2 peers per room for MVP
+Room expiry: 10 minutes after creation or 2 minutes after transfer completion
+Server stores zero persistent data
+
+
+4.2 Phase 2 Features
+D. Local Network Discovery ("Local Drop")
+Priority: P1 (High Value)
+User Story: As a user in a shared location, I want to see nearby devices for instant sharing.
+Requirements:
+
+"Nearby Devices" tab on homepage
+Display list of other users on same local network
+Each user shown as avatar/device name with online indicator
+Click to initiate direct transfer (no code needed)
+Privacy toggle: "Visible to nearby devices" (on by default)
+
+Technical Specs:
+
+Use WebRTC + local network multicast/broadcast or shared signaling room
+Detect common private IP range (192.168.x.x, 10.x.x.x)
+Update peer list every 5-10 seconds
+Anonymous IDs with user-customizable display names
+
+
+E. Multi-Peer Transfers
+Priority: P2
+Requirements:
+
+One sender, multiple receivers (1-to-N)
+Sender generates single code/QR
+Each receiver gets independent stream
+Bandwidth split evenly among receivers
+
+
+F. Transfer History (Client-Side Only)
+Priority: P2
+Requirements:
+
+Browser localStorage keeps last 10 transfers
+Display: filename, size, timestamp, peer info
+"Send Again" quick action
+Clear history button
+Never sent to server
+
+
+4.3 Future Enhancements (Phase 3+)
+
+Desktop Apps: Electron-based native apps for Windows/Mac/Linux
+Mobile Apps: React Native or native iOS/Android for background transfers
+Transfer Resume: Handle reconnections without restarting
+Folder Sharing: Send entire directories
+Text/Link Sharing: Quick clipboard sharing via same mechanism
+Password Protection: Optional 4-digit PIN on top of code
+Encrypted Transfers: End-to-end encryption (WebRTC already encrypts, but add user-controlled keys)
+
+
+5. User Experience & Design
+5.1 Design Principles
+
+Radical Simplicity: Every screen should have one primary action
+Speed Perception: Show activity immediately (no blank states)
+Trust Signals: Clearly communicate privacy/security
+Universal Design: Works on 4" phone and 27" desktop equally well
+
+5.2 Visual Direction
+
+Minimalist: Single-page app, clean typography, lots of white space
+Speed Metaphors: Visual "tunnel" animation during transfer
+Dark Mode: Optional, appealing to privacy-conscious users
+Responsive: Mobile-first, scales up
+
+5.3 Key Screens
+Homepage
+┌─────────────────────────────────┐
+│         TunnelDrop              │
+│   Send files at light speed     │
+│                                 │
+│   ┌─────────────────────────┐  │
+│   │    [Send File]          │  │
+│   └─────────────────────────┘  │
+│                                 │
+│   ┌─────────────────────────┐  │
+│   │    [Receive File]       │  │
+│   └─────────────────────────┘  │
+│                                 │
+│   ┌─────────────────────────┐  │
+│   │  [Nearby Devices] (3)   │  │  ← Phase 2
+│   └─────────────────────────┘  │
+│                                 │
+│  No sign-up • No limits         │
+│  Your files never touch our     │
+│  servers                        │
+└─────────────────────────────────┘
+Sender Screen (Waiting)
+┌─────────────────────────────────┐
+│  ← Back                         │
+│                                 │
+│     movie.mkv (8.4 GB)          │
+│                                 │
+│        Code: 4829               │
+│     ┌───────────────────┐       │
+│     │                   │       │
+│     │    [QR CODE]      │       │
+│     │                   │       │
+│     └───────────────────┘       │
+│                                 │
+│   Waiting for receiver...       │
+│   Connection expires in 4:32    │
+│                                 │
+│   [Cancel]                      │
+└─────────────────────────────────┘
+Active Transfer
+┌─────────────────────────────────┐
+│  movie.mkv → Chrome (Android)   │
+│                                 │
+│  ████████████░░░░░░░░░ 67%     │
+│                                 │
+│  5.6 GB of 8.4 GB               │
+│  42 MB/s • 1:04 remaining       │
+│                                 │
+│  [Cancel Transfer]              │
+└─────────────────────────────────┘
+
+6. Technical Architecture
+6.1 Tech Stack
+Frontend:
+
+Framework: React 18+ (or Svelte for smaller bundle)
+WebRTC Library: PeerJS or simple-peer
+Styling: Tailwind CSS
+State Management: Zustand or React Context
+QR Generation: qrcode.react
+
+Backend (Minimal):
+
+Signaling Server: Node.js + Socket.io or ws library
+Hosting: Cloudflare Workers or Railway.app (cheap, globally distributed)
+STUN Server: Public STUN (Google's stun:stun.l.google.com:19302)
+TURN Server: Coturn (self-hosted) or Twilio's TURN service (fallback)
+
+Infrastructure:
+
+CDN: Cloudflare for static assets
+Domain: Short, memorable (e.g., tunneldrop.io)
+SSL: Let's Encrypt (required for WebRTC)
+
+6.2 Data Flow
+┌─────────┐                    ┌─────────┐
+│ Sender  │                    │Receiver │
+└────┬────┘                    └────┬────┘
+     │                              │
+     │  1. Request room             │
+     ├──────────────────────────────┤
+     │        Signaling Server      │
+     │  2. Return code: 4829        │
+     │◄─────────────────────────────┤
+     │                              │
+     │                              │
+     │  3. Enter code 4829          │
+     │      ┌───────────────────────┤
+     │      │  4. Join room 4829    │
+     │      ├───────────────────────┤
+     │      │  Signaling Server     │
+     │      │  5. Exchange ICE      │
+     ├──────┼───────────────────────┤
+     │◄─────┴───────────────────────┤
+     │                              │
+     │  6. Direct P2P Connection    │
+     │        (WebRTC)              │
+     ├─────────────────────────────►│
+     │      File Data Stream        │
+     ├─────────────────────────────►│
+     │                              │
+6.3 WebRTC Connection Logic
+javascript// Pseudo-code
+
+// Sender
+const peer = new SimplePeer({ initiator: true });
+peer.on('signal', data => {
+  socket.emit('signal', { room: code, signal: data });
+});
+peer.on('connect', () => {
+  // Stream file in chunks
+  streamFile(file, peer);
+});
+
+// Receiver
+const peer = new SimplePeer({ initiator: false });
+socket.on('signal', data => {
+  peer.signal(data);
+});
+peer.on('data', chunk => {
+  // Reconstruct file
+  appendChunk(chunk);
+});
+6.4 Scalability Considerations
+
+Signaling Server: Handles only handshakes, not file data. Can scale horizontally.
+TURN Relay: Only used when P2P fails (~10-20% of connections). Bandwidth cost is main concern.
+Cost Projection:
+
+90% of transfers: $0 (pure P2P)
+10% via TURN: ~$0.05/GB (Twilio pricing)
+If 10,000 transfers/day @ 1GB avg, 1000 via TURN = $50/day = $1500/month
+
+
+
+Mitigation:
+
+Encourage local network use (no TURN needed)
+Rate limit: 5 transfers/hour per IP
+Premium tier for heavy users (future)
+
+
+7. Privacy & Security
+7.1 Privacy Features
+Zero-Knowledge Architecture:
+
+Files never stored on servers
+Signaling server sees only: timestamp, room codes, IP addresses (temp)
+No analytics on file contents
+
+Data Retention:
+
+Room codes: Deleted after 10 minutes or transfer completion
+Logs: 24-hour rolling window (for debugging only)
+No user accounts = no user data
+
+7.2 Security Measures
+In Transit:
+
+WebRTC is encrypted by default (DTLS-SRTP)
+Signaling over WSS (WebSocket Secure)
+
+Code Security:
+
+4-digit codes (10,000 combinations) expire quickly (5 min)
+Rate limiting on code attempts (10/minute per IP)
+
+Future:
+
+Optional password protection
+SHA-256 file verification (sender/receiver compare hashes)
+
+7.3 Legal/Compliance
+GDPR/Privacy:
+
+No personal data collected
+Privacy policy: "We don't see your files, period."
+
+DMCA/Abuse:
+
+No ability to monitor content (by design)
+Terms of Service: "Don't share illegal content"
+Abuse contact: If notified, can block IP/device (temporary)
+
+Jurisdiction:
+
+US-based legal entity (simpler compliance)
+
+
+8. Go-to-Market Strategy
+8.1 Target Audiences (Priority Order)
+
+College Students (Primary)
+
+High file-sharing needs (assignments, media)
+Tech-savvy early adopters
+Strong network effects (word-of-mouth in dorms/hostels)
+
+
+Remote Workers (Secondary)
+
+Need to share large files with colleagues
+Privacy-conscious (corporate data)
+
+
+Privacy Advocates (Tertiary)
+
+Will champion the product for ideological reasons
+
+
+
+8.2 Launch Tactics
+Pre-Launch (Weeks 1-8):
+
+Build MVP with core features (send/receive, codes, QR)
+Beta test with 50-100 users (local college, Reddit communities)
+Create landing page with email waitlist
+
+Launch (Week 9):
+
+Product Hunt launch (goal: Top 5 of the day)
+Post on r/InternetIsBeautiful, r/DataHoarder, r/PrivacyGuides
+Submit to Hacker News
+Reach out to tech bloggers (TechCrunch, The Verge)
+
+Growth (Weeks 10-20):
+
+Add "Local Drop" feature (triggers network effects)
+Campus ambassador program (5 colleges, $50 credit for referrals)
+Twitter/X campaign: "We sent a 50GB file in under a minute" with screen recording
+Integrate share button: "Share via TunnelDrop" embeddable widget
+
+Viral Mechanics:
+
+Every transfer shows recipient: "Sent via TunnelDrop.io"
+"Copy link" includes branded short URL
+Social proof: "1M+ files transferred" counter on homepage
+
+8.3 Metrics for Success
+Week 4 (MVP):
+
+1,000 transfers
+500 unique visitors
+<2% transfer failure rate
+
+Month 3:
+
+100,000 transfers
+50,000 unique users
+20% week-over-week growth
+Featured in 2-3 major tech publications
+
+Month 6:
+
+1M+ transfers
+500K unique users
+Mobile apps in beta
+Break-even on infrastructure costs
+
+
+9. Monetization (Future)
+Free Tier (Always):
+
+Unlimited file size
+Unlimited transfers
+All core features
+
+Premium Options (Post-Launch):
+
+TunnelDrop Pro ($3/month or $30/year)
+
+Transfer history sync across devices
+Custom transfer codes (vanity codes)
+Priority TURN bandwidth (faster fallback)
+Desktop/mobile apps (early access)
+
+
+Business Plan ($50/month per team)
+
+Team dashboard (see active transfers)
+Admin controls (whitelist devices)
+Audit logs
+Dedicated support
+
+
+
+Alternative Revenue:
+
+Sponsorships (e.g., "Powered by Cloudflare")
+Open-source donations (GitHub Sponsors)
+
+
+10. Risk Assessment
+10.1 Technical Risks
+RiskLikelihoodImpactMitigationWebRTC not supported on older browsersMediumMediumGraceful degradation message, suggest Chrome/FirefoxHigh TURN costs if P2P fails oftenMediumHighMonitor TURN usage, optimize ICE candidates, cap transfer sizes temporarilyFirewall/corporate networks block WebRTCHighMediumEducate users, provide troubleshooting guideSignaling server overwhelmedLowHighUse managed WebSocket service (Ably, Pusher) or auto-scale on AWS Lambda
+10.2 Business Risks
+RiskLikelihoodImpactMitigationLow adoption (too niche)MediumHighAggressive marketing to students, local network feature for stickinessCompetitors copy ideaHighMediumMove fast, build brand loyalty, add unique features (Local Drop)Legal issues (illegal file sharing)LowHighStrong ToS, no monitoring = no liability (DMCA safe harbor), consult lawyerUnsustainable costsMediumMediumThrottle during beta, introduce premium tier, seek sponsorships
+
+11. Development Roadmap
+Phase 1: MVP (Weeks 1-8)
+Week 1-2: Foundation
+
+Set up repo, choose tech stack
+Build signaling server (WebSocket)
+Deploy to staging (Cloudflare Workers)
+
+Week 3-4: Core Transfer
+
+Implement sender flow (file picker, code generation)
+Implement receiver flow (code entry, file download)
+WebRTC connection establishment
+
+Week 5-6: Polish
+
+QR code generation
+Progress indicators
+Error handling (connection failed, timeout)
+Responsive design
+
+Week 7-8: Testing & Launch Prep
+
+Cross-browser testing (Chrome, Firefox, Safari, Edge)
+Cross-device testing (iOS, Android, desktop)
+Performance optimization (large files, slow connections)
+Write documentation, ToS, Privacy Policy
+
+Deliverable: Functional web app at tunneldrop.io
+
+Phase 2: Network Effects (Weeks 9-16)
+Week 9-10: Local Discovery
+
+Implement "Nearby Devices" peer detection
+Device name/avatar customization
+Privacy toggle
+
+Week 11-12: Virality Features
+
+Branded share links
+Transfer counter on homepage
+Social media meta tags (og:image, etc.)
+
+Week 13-14: Analytics & Optimization
+
+Privacy-respecting analytics (Plausible or Simple Analytics)
+A/B test homepage copy
+Speed optimizations based on user data
+
+Week 15-16: Mobile UX
+
+PWA (Progressive Web App) for "Add to Home Screen"
+Optimize touch interactions
+Mobile-specific onboarding
+
+Deliverable: Viral growth engine active
+
+Phase 3: Platform Expansion (Weeks 17-24)
+Week 17-20: Desktop Apps
+
+Electron app for Windows/Mac/Linux
+Native file system integration (drag-drop from desktop)
+Background transfers
+
+Week 21-24: Mobile Apps (Optional)
+
+React Native or native Swift/Kotlin
+Background transfer support
+Push notifications on completion
+
+Deliverable: Native apps in beta
+
+12. Success Criteria
+MVP Success (End of Phase 1)
+✅ 1,000+ successful transfers
+✅ <3% error rate
+✅ Average transfer speed >10 MB/s on local networks
+✅ 90%+ of transfers complete without TURN relay
+✅ Positive feedback from 20+ beta users
+Product-Market Fit (End of Phase 2)
+✅ 100,000+ transfers
+✅ 40%+ weekly retention (users return to send another file)
+✅ 25%+ of transfers use "Local Drop" feature
+✅ Organic social media mentions (not paid)
+✅ Featured on Product Hunt (Top 10)
+Scale (6 Months)
+✅ 1M+ transfers
+✅ Break-even or profitable
+✅ Apps on App Store / Google Play
+✅ Partnership with device manufacturer or ISP (stretch goal)
+
+13. Appendix
+13.1 Competitive Analysis
+FeatureTunnelDropWeTransferGoogle DriveSnapdropAirDropUpload wait❌ No✅ Yes✅ Yes❌ No❌ NoFile size limit❌ None✅ 2GB free✅ 15GB total❌ None❌ NoneCross-platform✅ Yes✅ Yes✅ Yes✅ Yes❌ Apple onlyNo sign-up✅ Yes✅ Yes❌ No✅ Yes✅ YesLocal speed boost✅ Yes❌ No❌ No✅ Yes✅ YesPrivacy (no storage)✅ Yes❌ No❌ No✅ Yes✅ YesEasy code/QR✅ Yes❌ No❌ No❌ No❌ No
+Key Insight: We're combining the best of Snapdrop (P2P, no storage) + AirDrop (local speed) + better UX (codes/QR instead of name-based discovery).
+
+13.2 FAQ for Stakeholders
+Q: How is this different from Snapdrop?
+A: Snapdrop requires both users to be on the exact same page at the exact same time and identifies by device names (confusing in large groups). TunnelDrop uses explicit codes/QR for clarity and works even if users aren't on the same network (via TURN fallback).
+Q: Won't this be used for piracy?
+A: Potentially, but we have no more control than email or Dropbox. Our ToS prohibits illegal use, and we can't monitor content (by design). Legally, we're a "mere conduit" like an ISP.
+Q: How do you make money?
+A: Phase 1 is growth-focused (free). Phase 2 introduces optional premium features (history sync, custom codes, apps). Business tier for teams.
+Q: What if the signaling server goes down?
+A: Transfers in progress continue (they're P2P). New transfers fail gracefully with error message. We'll use uptime monitoring and have auto-restart configured.
+
+13.3 Open Questions
+
+Brand Name: Is "TunnelDrop" final, or do we workshop alternatives? (Examples: ZipZap, FileBeam, PeerSend)
+Premium Launch Timing: Introduce paid tier at 10K users or 100K users?
+Mobile Apps Priority: Build PWA first or jump to native apps?
+Partnerships: Approach router manufacturers (TP-Link, Netgear) for bundling?
+
+
+14. Conclusion
+TunnelDrop has the potential to redefine file sharing by eliminating the server middleman and delivering true instant transfers. The combination of radical simplicity, privacy-by-design, and local network discovery creates a product that's both technically superior and emotionally resonant ("finally, file sharing that just works").
+Next Steps:
+
+Finalize tech stack decisions (week 1)
+Set up development environment and repo (week 1)
+Build signaling server MVP (week 2)
+Begin frontend development (week 2-3)
+Weekly check-ins to review progress vs. roadmap
+
+Success depends on:
+
+Flawless UX (every step must feel instant)
+Aggressive early marketing to students
+Local Drop feature launching before competitors copy the idea
+
+
+Document Version: 1.0
+Last Updated: February 1, 2026
+Owner: Product Team
+Next Review: End of Week 4 (post-MVP core completion)
