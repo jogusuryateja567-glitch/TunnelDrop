@@ -106,6 +106,13 @@ class SignalingService {
         }
     }
 
+    // Notify receiver is ready to receive
+    notifyReceiverReady() {
+        if (this.socket?.connected) {
+            this.socket.emit('receiver-ready');
+        }
+    }
+
     // Cancel transfer
     cancelTransfer() {
         if (this.socket?.connected) {

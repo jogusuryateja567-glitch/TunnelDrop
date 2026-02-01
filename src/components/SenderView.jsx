@@ -61,14 +61,22 @@ function SenderView({ onBack }) {
 
             // Handle WebRTC connection
             webrtcService.peer.on('connect', () => {
+                console.log('WebRTC connected, waiting for receiver to accept...');
                 setState(TRANSFER_STATES.CONNECTED);
+            });
+
+            // Wait for receiver to click "Accept"
+            const handleReceiverReady = () => {
+                console.log('Receiver accepted, starting transfer');
                 startTransfer();
 
                 // Start sending file
                 webrtcService.sendFile(file, (bytesTransferred) => {
                     setProgress(bytesTransferred);
                 });
-            });
+            };
+
+            signalingService.on('receiver-ready', handleReceiverReady);
 
             webrtcService.onComplete(() => {
                 completeTransfer();

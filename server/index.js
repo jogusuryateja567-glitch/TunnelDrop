@@ -163,6 +163,21 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Handle receiver ready signal
+  socket.on('receiver-ready', () => {
+    const code = socket.data.code;
+    const room = rooms.get(code);
+
+    if (!room || socket.data.role !== 'receiver') {
+      return;
+    }
+
+    if (room.sender) {
+      console.log(`Receiver ready in room ${code}, notifying sender`);
+      io.to(room.sender).emit('receiver-ready');
+    }
+  });
+
   // Handle transfer completion
   socket.on('transfer-complete', () => {
     const code = socket.data.code;

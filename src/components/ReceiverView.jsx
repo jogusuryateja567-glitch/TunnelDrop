@@ -87,6 +87,9 @@ function ReceiverView({ onBack }) {
     const handleAccept = () => {
         if (!fileMetadata) return;
 
+        // Notify sender that receiver is ready
+        signalingService.notifyReceiverReady();
+
         setState(TRANSFER_STATES.CONNECTED);
         startTransfer();
 
