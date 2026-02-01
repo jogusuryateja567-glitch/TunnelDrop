@@ -10,15 +10,16 @@ const PORT = process.env.PORT || 3001;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
 
 // Enable CORS
+const isDev = process.env.NODE_ENV === 'development';
 app.use(cors({
-  origin: CORS_ORIGIN,
+  origin: isDev ? true : CORS_ORIGIN,
   credentials: true
 }));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
+  res.json({
+    status: 'ok',
     rooms: rooms.size,
     timestamp: new Date().toISOString()
   });
@@ -27,7 +28,7 @@ app.get('/health', (req, res) => {
 // Initialize Socket.io with CORS
 const io = new Server(httpServer, {
   cors: {
-    origin: CORS_ORIGIN,
+    origin: isDev ? true : CORS_ORIGIN,
     methods: ['GET', 'POST'],
     credentials: true
   }
@@ -42,16 +43,16 @@ function generateCode() {
   let code;
   let attempts = 0;
   const maxAttempts = 100;
-  
+
   do {
     code = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
     attempts++;
   } while (rooms.has(code) && attempts < maxAttempts);
-  
+
   if (attempts >= maxAttempts) {
     throw new Error('Unable to generate unique code');
   }
-  
+
   return code;
 }
 
@@ -59,7 +60,7 @@ function generateCode() {
 function cleanupExpiredRooms() {
   const now = Date.now();
   const expiryTime = 10 * 60 * 1000; // 10 minutes
-  
+
   for (const [code, room] of rooms.entries()) {
     if (now - room.createdAt > expiryTime) {
       console.log(`Cleaning up expired room: ${code}`);
@@ -73,73 +74,73 @@ setInterval(cleanupExpiredRooms, 60000);
 
 io.on('connection', (socket) => {
   console.log(`Client connected: ${socket.id}`);
-  
+
   // Sender creates a new room
   socket.on('create-room', (callback) => {
     try {
       const code = generateCode();
-      
+
       rooms.set(code, {
         sender: socket.id,
         receiver: null,
         createdAt: Date.now()
       });
-      
+
       socket.join(code);
       socket.data.code = code;
       socket.data.role = 'sender';
-      
+
       console.log(`Room created: ${code} by ${socket.id}`);
-      
+
       callback({ success: true, code });
     } catch (error) {
       console.error('Error creating room:', error);
       callback({ success: false, error: error.message });
     }
   });
-  
+
   // Receiver joins existing room
   socket.on('join-room', (code, callback) => {
     const room = rooms.get(code);
-    
+
     if (!room) {
       callback({ success: false, error: 'Invalid code' });
       return;
     }
-    
+
     if (room.receiver) {
       callback({ success: false, error: 'Room is full' });
       return;
     }
-    
+
     room.receiver = socket.id;
     socket.join(code);
     socket.data.code = code;
     socket.data.role = 'receiver';
-    
+
     console.log(`${socket.id} joined room: ${code}`);
-    
+
     // Notify sender that receiver has joined
     io.to(room.sender).emit('peer-joined', {
       peerId: socket.id
     });
-    
+
     callback({ success: true, code });
   });
-  
+
   // Forward WebRTC signaling data to peer
   socket.on('signal', (data) => {
     const code = socket.data.code;
     const room = rooms.get(code);
-    
+
     if (!room) {
       console.error(`Signal error: Room ${code} not found`);
       return;
     }
-    
+
     // Determine target peer
     const targetPeer = socket.data.role === 'sender' ? room.receiver : room.sender;
-    
+
     if (targetPeer) {
       io.to(targetPeer).emit('signal', {
         signal: data.signal,
@@ -147,31 +148,31 @@ io.on('connection', (socket) => {
       });
     }
   });
-  
+
   // Handle file metadata sharing
   socket.on('file-metadata', (metadata) => {
     const code = socket.data.code;
     const room = rooms.get(code);
-    
+
     if (!room || socket.data.role !== 'sender') {
       return;
     }
-    
+
     if (room.receiver) {
       io.to(room.receiver).emit('file-metadata', metadata);
     }
   });
-  
+
   // Handle transfer completion
   socket.on('transfer-complete', () => {
     const code = socket.data.code;
     const room = rooms.get(code);
-    
+
     if (!room) return;
-    
+
     // Notify both peers
     io.to(code).emit('transfer-complete');
-    
+
     // Schedule room cleanup in 2 minutes
     setTimeout(() => {
       if (rooms.has(code)) {
@@ -180,32 +181,32 @@ io.on('connection', (socket) => {
       }
     }, 2 * 60 * 1000);
   });
-  
+
   // Handle transfer cancellation
   socket.on('cancel-transfer', () => {
     const code = socket.data.code;
     const room = rooms.get(code);
-    
+
     if (!room) return;
-    
+
     // Notify peer
     io.to(code).emit('transfer-cancelled');
-    
+
     // Clean up room
     rooms.delete(code);
   });
-  
+
   // Handle disconnection
   socket.on('disconnect', () => {
     console.log(`Client disconnected: ${socket.id}`);
-    
+
     const code = socket.data.code;
     const room = rooms.get(code);
-    
+
     if (room) {
       // Notify peer of disconnection
       io.to(code).emit('peer-disconnected');
-      
+
       // Clean up room if sender disconnects or both are gone
       if (socket.data.role === 'sender' || !room.sender || !room.receiver) {
         console.log(`Cleaning up room ${code} after disconnect`);

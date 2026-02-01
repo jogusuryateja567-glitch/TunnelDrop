@@ -14,7 +14,8 @@ export const CONNECTION_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 export const WEBRTC_TIMEOUT = 30 * 1000; // 30 seconds
 
 // Signaling server
-export const SIGNALING_SERVER = import.meta.env.VITE_SIGNALING_SERVER || 'http://localhost:3001';
+const DEV_SERVER = `http://${window.location.hostname}:3001`;
+export const SIGNALING_SERVER = import.meta.env.VITE_SIGNALING_SERVER || (import.meta.env.DEV ? DEV_SERVER : window.location.origin);
 
 // Transfer states
 export const TRANSFER_STATES = {
