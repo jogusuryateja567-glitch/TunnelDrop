@@ -95,7 +95,9 @@ class WebRTCService {
             });
 
             this.peer._pc.addEventListener('connectionstatechange', () => {
-                console.log('Connection state:', this.peer._pc.connectionState);
+                if (this.peer && this.peer._pc) {
+                    console.log('Connection state:', this.peer._pc.connectionState);
+                }
             });
         }
 

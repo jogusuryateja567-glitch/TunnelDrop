@@ -1,19 +1,30 @@
-// STUN server configuration
-// STUN server configuration
+// STUN/TURN server configuration
 export const ICE_SERVERS = [
+    // Google STUN servers
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun2.l.google.com:19302' },
-    // Free OpenRelay TURN (for testing)
+    // Twilio STUN
+    { urls: 'stun:global.stun.twilio.com:3478' },
+    // Free TURN servers for testing (Metered)
     {
-        urls: [
-            "stun:openrelay.metered.ca:80",
-            "turn:openrelay.metered.ca:80",
-            "turn:openrelay.metered.ca:443",
-            "turn:openrelay.metered.ca:443?transport=tcp"
-        ],
-        username: "openrelayproject",
-        credential: "openrelayproject"
+        urls: 'turn:a.relay.metered.ca:80',
+        username: 'e8dd65b36452d970d6e8197f',
+        credential: 'M4CrxTh/1QYutPg8',
+    },
+    {
+        urls: 'turn:a.relay.metered.ca:80?transport=tcp',
+        username: 'e8dd65b36452d970d6e8197f',
+        credential: 'M4CrxTh/1QYutPg8',
+    },
+    {
+        urls: 'turn:a.relay.metered.ca:443',
+        username: 'e8dd65b36452d970d6e8197f',
+        credential: 'M4CrxTh/1QYutPg8',
+    },
+    {
+        urls: 'turn:a.relay.metered.ca:443?transport=tcp',
+        username: 'e8dd65b36452d970d6e8197f',
+        credential: 'M4CrxTh/1QYutPg8',
     }
 ];
 
