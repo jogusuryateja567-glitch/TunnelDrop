@@ -5,11 +5,13 @@ import signalingService from '../services/signaling';
 import webrtcService from '../services/webrtc';
 import { TRANSFER_STATES } from '../utils/constants';
 import { formatFileSize } from '../utils/formatters';
+import NetworkGuide from './NetworkGuide';
 
 function SenderView({ onBack }) {
     const fileInputRef = useRef(null);
     const initialized = useRef(false);
     const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
+    const [showNetworkGuide, setShowNetworkGuide] = useState(false);
     const {
         file,
         code,
@@ -91,6 +93,11 @@ function SenderView({ onBack }) {
             });
 
             webrtcService.onError((err) => {
+                console.error('WebRTC error:', err);
+                // Show network guide for connection failures
+                if (err.message.includes('Connection failed') || err.message.includes('timeout')) {
+                    setShowNetworkGuide(true);
+                }
                 setError(err.message);
             });
         };
@@ -200,60 +207,66 @@ function SenderView({ onBack }) {
     }
 
     return (
-        <div className="card max-w-md animate-fade-in">
-            <div className="text-center">
-                {/* File info */}
-                <div className="mb-6">
-                    <div className="text-5xl mb-3">📄</div>
-                    <h3 className="text-xl font-semibold mb-1">{file.name}</h3>
-                    <p className="text-gray-600 dark:text-gray-400">{formatFileSize(file.size)}</p>
-                </div>
-
-                {/* Code display */}
-                <div className="mb-6">
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Share this code:</p>
-                    <div className="text-6xl font-bold tracking-wider gradient-text mb-4">
-                        {code || '----'}
+        <>
+            <div className="card max-w-md animate-fade-in">
+                <div className="text-center">
+                    {/* File info */}
+                    <div className="mb-6">
+                        <div className="text-5xl mb-3">📄</div>
+                        <h3 className="text-xl font-semibold mb-1">{file.name}</h3>
+                        <p className="text-gray-600 dark:text-gray-400">{formatFileSize(file.size)}</p>
                     </div>
-                </div>
 
-                {/* QR Code */}
-                {code && (
-                    <div className="mb-6 flex justify-center">
-                        <div className="p-4 bg-white rounded-2xl shadow-lg">
-                            <QRCodeCanvas value={qrValue} size={200} />
+                    {/* Code display */}
+                    <div className="mb-6">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Share this code:</p>
+                        <div className="text-6xl font-bold tracking-wider gradient-text mb-4">
+                            {code || '----'}
                         </div>
                     </div>
-                )}
 
-                {/* Status */}
-                <div className="mb-6">
-                    {state === TRANSFER_STATES.WAITING && (
-                        <>
-                            <div className="flex items-center justify-center gap-2 text-gray-600 dark:text-gray-400 mb-2">
-                                <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse"></div>
-                                <span>Waiting for receiver...</span>
+                    {/* QR Code */}
+                    {code && (
+                        <div className="mb-6 flex justify-center">
+                            <div className="p-4 bg-white rounded-2xl shadow-lg">
+                                <QRCodeCanvas value={qrValue} size={200} />
                             </div>
-                            <p className="text-sm text-gray-500">
-                                Expires in {minutes}:{seconds.toString().padStart(2, '0')}
-                            </p>
-                        </>
-                    )}
-                    {state === TRANSFER_STATES.CONNECTING && (
-                        <div className="flex items-center justify-center gap-2 text-primary-600 dark:text-primary-400">
-                            <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse"></div>
-                            <span>Connecting...</span>
                         </div>
                     )}
+
+                    {/* Status */}
+                    <div className="mb-6">
+                        {state === TRANSFER_STATES.WAITING && (
+                            <>
+                                <div className="flex items-center justify-center gap-2 text-gray-600 dark:text-gray-400 mb-2">
+                                    <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse"></div>
+                                    <span>Waiting for receiver...</span>
+                                </div>
+                                <p className="text-sm text-gray-500">
+                                    Expires in {minutes}:{seconds.toString().padStart(2, '0')}
+                                </p>
+                            </>
+                        )}
+                        {state === TRANSFER_STATES.CONNECTING && (
+                            <div className="flex items-center justify-center gap-2 text-primary-600 dark:text-primary-400">
+                                <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse"></div>
+                                <span>Connecting...</span>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Actions */}
+                    <button onClick={handleCancel} className="btn-secondary w-full">
+                        Cancel
+                    </button>
                 </div>
 
-                {/* Actions */}
-                <button onClick={handleCancel} className="btn-secondary w-full">
-                    Cancel
-                </button>
-            </div>
-        </div>
+                {/* Network Guide Modal */}
+                {showNetworkGuide && (
+                    <NetworkGuide onDismiss={() => setShowNetworkGuide(false)} />
+                )}        </>
     );
 }
 
-export default SenderView;
+            export default SenderView;
+
