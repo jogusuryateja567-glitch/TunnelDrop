@@ -24,7 +24,7 @@ function HomePage({ onSendFile, onReceiveFile }) {
                     Direct peer-to-peer file transfer with zero upload wait time
                 </p>
                 <div className="mt-4 space-y-2">
-                    <p className="text-sm font-medium text-primary-600">v2.2 (Bypass Mode Enabled)</p>
+                    <p className="text-sm font-medium text-primary-600">v2.3 (Global Link Enabled)</p>
                     <button
                         onClick={() => {
                             window.location.reload(true);

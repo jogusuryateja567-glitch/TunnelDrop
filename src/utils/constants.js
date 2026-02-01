@@ -1,17 +1,18 @@
-// STUN/TURN server configuration - Using direct IPs to bypass DNS blocks
+// STUN/TURN server configuration - Trusted Global Infrastructure
 export const ICE_SERVERS = [
-    // Google STUN IPs
-    { urls: 'stun:142.250.141.127:19302' }, // stun.l.google.com
-    { urls: 'stun:142.251.2.127:19302' },  // stun1.l.google.com
+    // Twilio Global STUN (Highly Trusted)
+    { urls: 'stun:global.stun.twilio.com:3478' },
+    { urls: 'stun:stun.l.google.com:19302' },
 
-    // OpenRelay IPs (Metered)
+    // Metered Secure TURN (Using Port 443 TLS) - Bypasses almost all firewalls
     {
-        urls: 'turn:18.225.138.117:80', // openrelay.metered.ca
+        urls: 'turns:openrelay.metered.ca:443?transport=tcp',
         username: 'openrelayproject',
         credential: 'openrelayproject'
     },
+    // Standard TURN fallback
     {
-        urls: 'turns:18.225.138.117:443?transport=tcp',
+        urls: 'turn:openrelay.metered.ca:80',
         username: 'openrelayproject',
         credential: 'openrelayproject'
     }
