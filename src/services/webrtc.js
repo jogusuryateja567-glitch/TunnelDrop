@@ -107,13 +107,14 @@ class WebRTCService {
             });
 
             this.peer._pc.addEventListener('icecandidateerror', (event) => {
-                console.error('❌ ICE candidate error:', {
+                const errorInfo = {
                     errorCode: event.errorCode,
                     errorText: event.errorText,
                     url: event.url,
                     address: event.address,
                     port: event.port
-                });
+                };
+                console.error('❌ ICE candidate error:', JSON.stringify(errorInfo, null, 2));
             });
 
             this.peer._pc.addEventListener('connectionstatechange', () => {
