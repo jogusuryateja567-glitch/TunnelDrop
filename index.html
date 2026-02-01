@@ -12,20 +12,6 @@
     content="Send files at light speed - P2P file transfer with zero upload wait time and no limits" />
   <meta property="og:type" content="website" />
   <title>TunnelDrop - Send files at light speed</title>
-  <script>
-    // Polyfills for WebRTC libraries compatibility
-    window.global = window;
-    window.process = {
-      env: { NODE_ENV: 'development' },
-      browser: true,
-      nextTick: (fn) => setTimeout(fn, 0)
-    };
-    window.Buffer = window.Buffer || {
-      isBuffer: () => false,
-      from: () => ({}),
-      alloc: () => ({})
-    };
-  </script>
 </head>
 
 <body>
