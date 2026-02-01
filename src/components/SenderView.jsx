@@ -8,6 +8,7 @@ import { formatFileSize } from '../utils/formatters';
 
 function SenderView({ onBack }) {
     const fileInputRef = useRef(null);
+    const initialized = useRef(false);
     const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
     const {
         file,
@@ -25,22 +26,24 @@ function SenderView({ onBack }) {
 
 
     useEffect(() => {
-        if (!file) return;
+        if (!file || initialized.current) return;
+
+        initialized.current = true;
+        console.log('Initializing sender with file:', file.name);
 
         // Initialize services
-        setStoreFile(file);
         setRole('sender');
 
         // Connect to signaling server
-        signalingService.connect();
-
-        // Create room
-        signalingService.createRoom()
+        signalingService.connect()
+            .then(() => signalingService.createRoom())
             .then((roomCode) => {
+                console.log('Room created:', roomCode);
                 setCode(roomCode);
                 setState(TRANSFER_STATES.WAITING);
             })
             .catch((err) => {
+                console.error('Error creating room:', err);
                 setError(err.message);
             });
 
@@ -114,12 +117,14 @@ function SenderView({ onBack }) {
 
         // Cleanup
         return () => {
+            console.log('Cleaning up sender view');
             signalingService.off('peer-joined', handlePeerJoined);
             signalingService.off('signal', handleSignal);
             signalingService.off('transfer-cancelled', handleTransferCancelled);
             signalingService.off('peer-disconnected', handlePeerDisconnected);
+            initialized.current = false;
         };
-    }, [file]);
+    }, [file]); // Only depend on file, not store functions
 
     // Countdown timer
     useEffect(() => {
