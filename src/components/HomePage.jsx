@@ -23,6 +23,7 @@ function HomePage({ onSendFile, onReceiveFile }) {
                 <p className="text-xl text-gray-600 dark:text-gray-400">
                     Direct peer-to-peer file transfer with zero upload wait time
                 </p>
+                <p className="mt-4 text-sm font-medium text-primary-600">v2.0 (Secure TURN Enabled)</p>
             </div>
 
             <div className="card space-y-6">
