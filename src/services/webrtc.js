@@ -8,6 +8,7 @@ class WebRTCService {
         this.file = null;
         this.chunks = [];
         this.receivedSize = 0;
+        this.signalBuffer = [];
         this.onProgressCallback = null;
         this.onCompleteCallback = null;
         this.onErrorCallback = null;
@@ -27,6 +28,13 @@ class WebRTCService {
             },
             stream,
         });
+
+        // Process buffered signals
+        if (this.signalBuffer.length > 0) {
+            console.log(`Processing ${this.signalBuffer.length} buffered signals`);
+            this.signalBuffer.forEach(sig => this.peer.signal(sig));
+            this.signalBuffer = [];
+        }
 
         // Handle signaling
         this.peer.on('signal', (signal) => {
@@ -58,6 +66,8 @@ class WebRTCService {
     signal(signalData) {
         if (this.peer) {
             this.peer.signal(signalData);
+        } else {
+            this.signalBuffer.push(signalData);
         }
     }
 

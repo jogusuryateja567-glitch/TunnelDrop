@@ -8,42 +8,55 @@ class SignalingService {
     }
 
     connect() {
-        if (this.socket?.connected) return this.socket;
+        if (this.socket?.connected) return Promise.resolve(this.socket);
 
-        this.socket = io(SIGNALING_SERVER, {
-            transports: ['websocket', 'polling'],
-            reconnection: true,
-            reconnectionDelay: 1000,
-            reconnectionAttempts: 5,
-        });
+        return new Promise((resolve, reject) => {
+            if (this.socket) {
+                this.socket.connect();
+            } else {
+                this.socket = io(SIGNALING_SERVER, {
+                    transports: ['websocket', 'polling'],
+                    reconnection: true,
+                    reconnectionDelay: 1000,
+                    reconnectionAttempts: 5,
+                });
 
-        // Forward events to handlers
-        this.socket.onAny((event, ...args) => {
-            const handlers = this.handlers.get(event);
-            if (handlers) {
-                handlers.forEach(handler => handler(...args));
+                // Forward events to handlers
+                this.socket.onAny((event, ...args) => {
+                    const handlers = this.handlers.get(event);
+                    if (handlers) {
+                        handlers.forEach(handler => handler(...args));
+                    }
+                });
             }
-        });
 
-        return this.socket;
+            const onConnect = () => {
+                this.socket.off('connect_error', onConnectError);
+                resolve(this.socket);
+            };
+
+            const onConnectError = (err) => {
+                this.socket.off('connect', onConnect);
+                reject(err);
+            };
+
+            this.socket.once('connect', onConnect);
+            this.socket.once('connect_error', onConnectError);
+        });
     }
 
     disconnect() {
         if (this.socket) {
             this.socket.disconnect();
-            this.socket = null;
+            // We don't null this.socket here to allow reconnection using the same instance
         }
         this.handlers.clear();
     }
 
     // Create room (sender)
-    createRoom() {
+    async createRoom() {
+        await this.connect();
         return new Promise((resolve, reject) => {
-            if (!this.socket?.connected) {
-                reject(new Error('Not connected to signaling server'));
-                return;
-            }
-
             this.socket.emit('create-room', (response) => {
                 if (response.success) {
                     resolve(response.code);
@@ -55,13 +68,9 @@ class SignalingService {
     }
 
     // Join room (receiver)
-    joinRoom(code) {
+    async joinRoom(code) {
+        await this.connect();
         return new Promise((resolve, reject) => {
-            if (!this.socket?.connected) {
-                reject(new Error('Not connected to signaling server'));
-                return;
-            }
-
             this.socket.emit('join-room', code, (response) => {
                 if (response.success) {
                     resolve();

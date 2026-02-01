@@ -44,9 +44,6 @@ function ReceiverView({ onBack }) {
             // Connect to signaling server
             signalingService.connect();
 
-            // Join room
-            await signalingService.joinRoom(roomCode);
-
             // Wait for file metadata
             const handleFileMetadata = (metadata) => {
                 setFileMetadata(metadata);
@@ -73,6 +70,9 @@ function ReceiverView({ onBack }) {
             signalingService.onSignal(handleSignal);
             signalingService.onTransferCancelled(handleTransferCancelled);
             signalingService.onPeerDisconnected(handlePeerDisconnected);
+
+            // Join room
+            await signalingService.joinRoom(roomCode);
 
             // Create WebRTC peer (not initiator)
             webrtcService.createPeer(false);
