@@ -8,6 +8,7 @@ import { formatFileSize, isValidCode, getDeviceInfo } from '../utils/formatters'
 function ReceiverView({ onBack }) {
     const [code, setCodeInput] = useState('');
     const [fileMetadata, setFileMetadata] = useState(null);
+    const [webRTCConnected, setWebRTCConnected] = useState(false);
     const {
         state,
         setState,
@@ -141,6 +142,7 @@ function ReceiverView({ onBack }) {
         );
     }
 
+
     // File preview and accept/decline
     if (fileMetadata && state === TRANSFER_STATES.WAITING) {
         return (
@@ -157,15 +159,26 @@ function ReceiverView({ onBack }) {
                         </div>
                     </div>
 
-                    <p className="text-gray-600 dark:text-gray-400 mb-6">
-                        Do you want to accept this file?
-                    </p>
+                    {!webRTCConnected ? (
+                        <div className="flex flex-col items-center justify-center p-4 mb-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+                            <p className="text-sm text-blue-700 dark:text-blue-300">Establishing secure P2P connection...</p>
+                        </div>
+                    ) : (
+                        <p className="text-green-600 dark:text-green-400 mb-6 font-medium">
+                            ✅ Secure connection ready
+                        </p>
+                    )}
 
                     <div className="flex gap-3">
                         <button onClick={handleDecline} className="btn-secondary flex-1">
                             Decline
                         </button>
-                        <button onClick={handleAccept} className="btn-primary flex-1">
+                        <button
+                            onClick={handleAccept}
+                            className={`btn-primary flex-1 ${!webRTCConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            disabled={!webRTCConnected}
+                        >
                             Accept
                         </button>
                     </div>

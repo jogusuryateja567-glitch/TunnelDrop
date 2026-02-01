@@ -22,7 +22,7 @@ class WebRTCService {
 
         this.peer = new SimplePeer({
             initiator,
-            trickle: false, // Wait for all candidates (more stable)
+            trickle: true,
             config: {
                 iceServers: ICE_SERVERS,
             },
@@ -57,6 +57,10 @@ class WebRTCService {
                 console.log('Buffer polyfill check passed:', Buffer.isBuffer(buf));
             } catch (err) {
                 console.error('Buffer polyfill failed:', err);
+            }
+
+            if (this.onConnectCallback) {
+                this.onConnectCallback();
             }
         });
 
@@ -250,6 +254,10 @@ class WebRTCService {
         this.onErrorCallback = callback;
     }
 
+    onConnect(callback) {
+        this.onConnectCallback = callback;
+    }
+
     // Cleanup
     destroy() {
         if (this.peer) {
@@ -262,6 +270,7 @@ class WebRTCService {
         this.onProgressCallback = null;
         this.onCompleteCallback = null;
         this.onErrorCallback = null;
+        this.onConnectCallback = null;
     }
 }
 
