@@ -3,25 +3,20 @@ export const ICE_SERVERS = [
     // Google STUN servers
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
-    // Twilio public STUN
-    { urls: 'stun:global.stun.twilio.com:3478' },
-    // NTT's free STUN/TURN servers
+    // Reliable free TURN server (numb.viagenie.ca)
     {
-        urls: 'stun:stun.stunprotocol.org:3478'
+        urls: 'turn:numb.viagenie.ca',
+        username: 'webrtc@live.com',
+        credential: 'muazkh'
     },
-    // Public OpenRelay servers (no auth needed)
+    {
+        urls: 'turn:numb.viagenie.ca:3478?transport=tcp',
+        username: 'webrtc@live.com',
+        credential: 'muazkh'
+    },
+    // Backup OpenRelay
     {
         urls: 'turn:openrelay.metered.ca:80',
-        username: 'openrelayproject',
-        credential: 'openrelayproject',
-    },
-    {
-        urls: 'turn:openrelay.metered.ca:443',
-        username: 'openrelayproject',
-        credential: 'openrelayproject',
-    },
-    {
-        urls: 'turn:openrelay.metered.ca:443?transport=tcp',
         username: 'openrelayproject',
         credential: 'openrelayproject',
     }
