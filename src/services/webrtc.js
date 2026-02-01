@@ -104,7 +104,7 @@ class WebRTCService {
             await new Promise((resolve, reject) => {
                 const timeout = setTimeout(() => {
                     reject(new Error('Peer connection timeout'));
-                }, 10000);
+                }, 20000);
 
                 this.peer.once('connect', () => {
                     clearTimeout(timeout);
