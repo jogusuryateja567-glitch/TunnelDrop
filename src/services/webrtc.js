@@ -76,9 +76,28 @@ class WebRTCService {
         this.file = file;
         this.onProgressCallback = onProgress;
 
-        if (!this.peer || !this.peer.connected) {
-            throw new Error('Peer not connected');
+        // Wait for peer to be connected
+        if (!this.peer) {
+            throw new Error('Peer not initialized');
         }
+
+        // If not connected yet, wait for connection
+        if (!this.peer.connected) {
+            console.log('Waiting for peer connection before sending...');
+            await new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => {
+                    reject(new Error('Peer connection timeout'));
+                }, 10000);
+
+                this.peer.once('connect', () => {
+                    clearTimeout(timeout);
+                    console.log('Peer connected, starting file transfer');
+                    resolve();
+                });
+            });
+        }
+
+        console.log(`Starting file transfer: ${file.name} (${file.size} bytes)`);
 
         const chunkSize = CHUNK_SIZE;
         let offset = 0;

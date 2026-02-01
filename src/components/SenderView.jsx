@@ -66,14 +66,19 @@ function SenderView({ onBack }) {
             });
 
             // Wait for receiver to click "Accept"
-            const handleReceiverReady = () => {
+            const handleReceiverReady = async () => {
                 console.log('Receiver accepted, starting transfer');
-                startTransfer();
+                try {
+                    startTransfer();
 
-                // Start sending file
-                webrtcService.sendFile(file, (bytesTransferred) => {
-                    setProgress(bytesTransferred);
-                });
+                    // Start sending file
+                    await webrtcService.sendFile(file, (bytesTransferred) => {
+                        setProgress(bytesTransferred);
+                    });
+                } catch (err) {
+                    console.error('Error starting file send:', err);
+                    setError(err.message || 'Failed to start transfer');
+                }
             };
 
             signalingService.on('receiver-ready', handleReceiverReady);
