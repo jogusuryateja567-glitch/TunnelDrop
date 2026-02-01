@@ -8,15 +8,16 @@ export default defineConfig({
         nodePolyfills({
             // Whether to polyfill `node:` protocol imports.
             protocolImports: true,
+            // Whether to polyfill specific globals.
+            globals: {
+                Buffer: true,
+                global: true,
+                process: true,
+            },
         }),
     ],
     define: {
         global: 'window',
-        'process.env': {},
-        process: {
-            browser: true,
-            env: {}
-        },
     },
     server: {
         port: 5173,
