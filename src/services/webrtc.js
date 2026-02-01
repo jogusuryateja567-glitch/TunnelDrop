@@ -38,6 +38,7 @@ class WebRTCService {
 
         // Handle signaling
         this.peer.on('signal', (signal) => {
+            console.log('Generated WebRTC signal:', signal.type);
             signalingService.sendSignal(signal);
         });
 
@@ -77,9 +78,12 @@ class WebRTCService {
 
     // Process remote signal
     signal(signalData) {
+        console.log('Received remote signal:', signalData.type);
         if (this.peer) {
+            console.log('Passing signal to peer directly');
             this.peer.signal(signalData);
         } else {
+            console.log('Buffering signal (peer not ready)');
             this.signalBuffer.push(signalData);
         }
     }
