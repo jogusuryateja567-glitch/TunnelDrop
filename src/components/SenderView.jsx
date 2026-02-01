@@ -260,13 +260,14 @@ function SenderView({ onBack }) {
                         Cancel
                     </button>
                 </div>
+            </div>
 
-                {/* Network Guide Modal */}
-                {showNetworkGuide && (
-                    <NetworkGuide onDismiss={() => setShowNetworkGuide(false)} />
-                )}        </>
+            {/* Network Guide Modal */}
+            {showNetworkGuide && (
+                <NetworkGuide onDismiss={() => setShowNetworkGuide(false)} />
+            )}
+        </>
     );
 }
 
-            export default SenderView;
-
+export default SenderView;
