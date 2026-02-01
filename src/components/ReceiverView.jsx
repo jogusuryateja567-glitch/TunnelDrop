@@ -80,6 +80,12 @@ function ReceiverView({ onBack }) {
             // Create WebRTC peer (not initiator)
             webrtcService.createPeer(false);
 
+            // Enable Accept button when connection is ready
+            webrtcService.onConnect(() => {
+                console.log('Receiver: WebRTC Connected!');
+                setWebRTCConnected(true);
+            });
+
         } catch (err) {
             setError(err.message);
         }
