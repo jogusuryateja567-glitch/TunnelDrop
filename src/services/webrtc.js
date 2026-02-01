@@ -44,6 +44,19 @@ class WebRTCService {
         // Handle connection
         this.peer.on('connect', () => {
             console.log('WebRTC connection established');
+
+            // Verify data channel state
+            if (this.peer._channel) {
+                console.log('Data channel state:', this.peer._channel.readyState);
+            }
+
+            // Verify Buffer polyfill
+            try {
+                const buf = Buffer.from('test');
+                console.log('Buffer polyfill check passed:', Buffer.isBuffer(buf));
+            } catch (err) {
+                console.error('Buffer polyfill failed:', err);
+            }
         });
 
         // Handle errors
@@ -99,26 +112,50 @@ class WebRTCService {
 
         console.log(`Starting file transfer: ${file.name} (${file.size} bytes)`);
 
+        // Small delay to ensure channel is stable
+        await new Promise(resolve => setTimeout(resolve, 500));
+
         const chunkSize = CHUNK_SIZE;
         let offset = 0;
+        let lastLoggedProgress = 0;
 
         const readChunk = () => {
+            // Verify channel is still open
+            if (this.peer.destroyed || !this.peer.connected) {
+                console.error('Peer disconnected during transfer');
+                const err = new Error('Connection lost during transfer');
+                if (this.onErrorCallback) this.onErrorCallback(err);
+                return;
+            }
+
             const slice = file.slice(offset, offset + chunkSize);
             const reader = new FileReader();
 
             reader.onload = (e) => {
                 if (e.target.result) {
                     try {
-                        this.peer.send(e.target.result);
+                        const buffer = Buffer.from(e.target.result);
+                        this.peer.send(buffer);
                         offset += e.target.result.byteLength;
 
                         if (this.onProgressCallback) {
                             this.onProgressCallback(offset);
                         }
 
+                        // Log progress every 10%
+                        const progress = (offset / file.size) * 100;
+                        if (progress - lastLoggedProgress > 10) {
+                            console.log(`Transfer progress: ${Math.round(progress)}%`);
+                            lastLoggedProgress = progress;
+                        }
+
                         if (offset < file.size) {
-                            // Continue reading
-                            readChunk();
+                            // Use setTimeout to allow UI updates and prevent blocking
+                            if (offset % (chunkSize * 10) === 0) {
+                                setTimeout(readChunk, 0);
+                            } else {
+                                readChunk();
+                            }
                         } else {
                             // Transfer complete
                             console.log('File transfer complete');
