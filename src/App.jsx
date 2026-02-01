@@ -16,9 +16,10 @@ function App() {
         const params = new URLSearchParams(window.location.search);
         const urlCode = params.get('code');
         if (urlCode && urlCode.length === 4) {
+            reset();
             setView('receiver');
         }
-    }, []);
+    }, [reset]);
 
     // Apply dark mode
     useEffect(() => {

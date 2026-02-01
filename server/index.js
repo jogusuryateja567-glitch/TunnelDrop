@@ -201,17 +201,11 @@ io.on('connection', (socket) => {
     console.log(`Client disconnected: ${socket.id}`);
 
     const code = socket.data.code;
-    const room = rooms.get(code);
-
-    if (room) {
-      // Notify peer of disconnection
+    if (code && rooms.has(code)) {
+      console.log(`Cleaning up room ${code} because a peer disconnected`);
+      // Notify anyone left in the room
       io.to(code).emit('peer-disconnected');
-
-      // Clean up room if sender disconnects or both are gone
-      if (socket.data.role === 'sender' || !room.sender || !room.receiver) {
-        console.log(`Cleaning up room ${code} after disconnect`);
-        rooms.delete(code);
-      }
+      rooms.delete(code);
     }
   });
 });
