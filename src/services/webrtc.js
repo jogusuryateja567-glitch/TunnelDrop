@@ -77,6 +77,28 @@ class WebRTCService {
             console.log('WebRTC connection closed');
         });
 
+        // Add ICE connection state monitoring
+        if (this.peer._pc) {
+            this.peer._pc.addEventListener('iceconnectionstatechange', () => {
+                console.log('ICE connection state:', this.peer._pc.iceConnectionState);
+            });
+
+            this.peer._pc.addEventListener('icegatheringstatechange', () => {
+                console.log('ICE gathering state:', this.peer._pc.iceGatheringState);
+            });
+
+            this.peer._pc.addEventListener('icecandidate', (event) => {
+                if (event.candidate) {
+                    const candidateType = event.candidate.type || 'unknown';
+                    console.log('ICE candidate type:', candidateType, event.candidate.candidate);
+                }
+            });
+
+            this.peer._pc.addEventListener('connectionstatechange', () => {
+                console.log('Connection state:', this.peer._pc.connectionState);
+            });
+        }
+
         return this.peer;
     }
 
