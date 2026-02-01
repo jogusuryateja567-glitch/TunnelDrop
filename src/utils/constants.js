@@ -3,22 +3,20 @@ export const ICE_SERVERS = [
     // Google STUN servers
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
-    // Reliable free TURN server (numb.viagenie.ca)
+    { urls: 'stun:stun2.l.google.com:19302' },
+    { urls: 'stun:stun3.l.google.com:19302' },
+
+    // Secure TURN (TLS) over port 443 - The magic bullet for firewalls
     {
-        urls: 'turn:numb.viagenie.ca',
-        username: 'webrtc@live.com',
-        credential: 'muazkh'
+        urls: 'turns:openrelay.metered.ca:443?transport=tcp',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
     },
-    {
-        urls: 'turn:numb.viagenie.ca:3478?transport=tcp',
-        username: 'webrtc@live.com',
-        credential: 'muazkh'
-    },
-    // Backup OpenRelay
+    // Standard TURN fallback
     {
         urls: 'turn:openrelay.metered.ca:80',
         username: 'openrelayproject',
-        credential: 'openrelayproject',
+        credential: 'openrelayproject'
     }
 ];
 
