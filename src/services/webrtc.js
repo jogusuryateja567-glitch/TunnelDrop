@@ -25,7 +25,10 @@ class WebRTCService {
             trickle: true,
             config: {
                 iceServers: ICE_SERVERS,
+                iceTransportPolicy: 'all', // Try 'relay' to force TURN if needed
             },
+            channelConfig: {},
+            channelName: 'file-transfer',
             stream,
         });
 
