@@ -22,7 +22,7 @@ class WebRTCService {
 
         this.peer = new SimplePeer({
             initiator,
-            trickle: true,
+            trickle: false, // Wait for all candidates (more stable)
             config: {
                 iceServers: ICE_SERVERS,
             },
