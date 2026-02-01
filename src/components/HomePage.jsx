@@ -23,7 +23,22 @@ function HomePage({ onSendFile, onReceiveFile }) {
                 <p className="text-xl text-gray-600 dark:text-gray-400">
                     Direct peer-to-peer file transfer with zero upload wait time
                 </p>
-                <p className="mt-4 text-sm font-medium text-primary-600">v2.1 (Direct IP Enabled)</p>
+                <div className="mt-4 space-y-2">
+                    <p className="text-sm font-medium text-primary-600">v2.2 (Bypass Mode Enabled)</p>
+                    <button
+                        onClick={() => {
+                            window.location.reload(true);
+                            if ('serviceWorker' in navigator) {
+                                navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+                            }
+                            alert('Cache cleared! Site will refresh.');
+                            window.location.href = window.location.origin + '?cache-bust=' + Date.now();
+                        }}
+                        className="text-xs text-gray-400 underline hover:text-primary-500"
+                    >
+                        Force Update / Clear Cache
+                    </button>
+                </div>
             </div>
 
             <div className="card space-y-6">
