@@ -88,13 +88,32 @@ class WebRTCService {
 
             this.peer._pc.addEventListener('icegatheringstatechange', () => {
                 console.log('ICE gathering state:', this.peer._pc.iceGatheringState);
+                if (this.peer._pc.iceGatheringState === 'complete') {
+                    console.log('⚠️ ICE gathering complete - check if relay candidates were found');
+                }
             });
 
             this.peer._pc.addEventListener('icecandidate', (event) => {
                 if (event.candidate) {
                     const candidateType = event.candidate.type || 'unknown';
                     console.log('ICE candidate type:', candidateType, event.candidate.candidate);
+
+                    if (candidateType === 'relay') {
+                        console.log('✅ RELAY candidate found! TURN is working!');
+                    }
+                } else {
+                    console.log('ICE gathering complete (null candidate)');
                 }
+            });
+
+            this.peer._pc.addEventListener('icecandidateerror', (event) => {
+                console.error('❌ ICE candidate error:', {
+                    errorCode: event.errorCode,
+                    errorText: event.errorText,
+                    url: event.url,
+                    address: event.address,
+                    port: event.port
+                });
             });
 
             this.peer._pc.addEventListener('connectionstatechange', () => {
