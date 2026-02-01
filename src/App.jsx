@@ -11,6 +11,15 @@ function App() {
     const [darkMode, setDarkMode] = useState(false);
     const { state, reset, setFile: setStoreFile } = useTransferStore();
 
+    useEffect(() => {
+        // Check for code in URL (QR scan)
+        const params = new URLSearchParams(window.location.search);
+        const urlCode = params.get('code');
+        if (urlCode && urlCode.length === 4) {
+            setView('receiver');
+        }
+    }, []);
+
     // Apply dark mode
     useEffect(() => {
         if (darkMode) {

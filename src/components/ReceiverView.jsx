@@ -53,7 +53,9 @@ function ReceiverView({ onBack }) {
 
             // Handle signaling
             const handleSignal = ({ signal }) => {
-                webrtcService.signal(signal);
+                if (webrtcService) {
+                    webrtcService.signal(signal);
+                }
             };
 
             const handleTransferCancelled = () => {

@@ -24,8 +24,12 @@ class SignalingService {
                 // Forward events to handlers
                 this.socket.onAny((event, ...args) => {
                     const handlers = this.handlers.get(event);
-                    if (handlers) {
-                        handlers.forEach(handler => handler(...args));
+                    if (handlers && handlers.size > 0) {
+                        handlers.forEach(handler => {
+                            if (typeof handler === 'function') {
+                                handler(...args);
+                            }
+                        });
                     }
                 });
             }
@@ -111,6 +115,7 @@ class SignalingService {
 
     // Event handlers
     on(event, handler) {
+        if (typeof handler !== 'function') return;
         if (!this.handlers.has(event)) {
             this.handlers.set(event, new Set());
         }
